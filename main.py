@@ -8,10 +8,20 @@ from ultralytics import YOLO
 from PIL import Image, ImageDraw, ImageFont
 
 # =============================
-# 初期化
+# FastAPI アプリ
 # =============================
 app = FastAPI()
-yolo_model = YOLO("yolov8s.pt")
+
+# =============================
+# YOLO モデル（遅延ロード）
+# =============================
+yolo_model = None
+
+def get_model():
+    global yolo_model
+    if yolo_model is None:
+        yolo_model = YOLO("yolov8s.pt")
+    return yolo_model
 
 
 # =============================
@@ -22,7 +32,9 @@ def crop_person(image_path, margin_x=0.05, margin_y=0.40):
     if img is None:
         return image_path
 
-    results = yolo_model(img)[0]
+    model = get_model()
+    results = model(img)[0]
+
     boxes = [b for b in results.boxes if int(b.cls[0]) == 0]
     if not boxes:
         return image_path
@@ -118,6 +130,7 @@ def create_collage_mid10(file_id):
     collage.save(out)
     return out
 
+
 # =============================
 # 画面①：アップロード画面（GET）
 # =============================
@@ -130,6 +143,7 @@ def upload_page():
             <button type="submit">アップロード</button>
         </form>
     """)
+
 
 # =============================
 # 画面①：アップロード → 連続写真表示
@@ -257,7 +271,7 @@ async def extract_mid10_page(
         function copyPrompt() {
             const textarea = document.getElementById("promptArea");
             textarea.select();
-            textarea.setSelectionRange(0, 99999); // スマホ対応
+            textarea.setSelectionRange(0, 99999);
 
             navigator.clipboard.writeText(textarea.value)
                 .then(() => {
@@ -279,7 +293,6 @@ async def extract_mid10_page(
 # 動画・画像配信
 # =============================
 @app.get("/tools/swing/video/{path}")
-@app.get("/tools/swing/video/{path}")
 def serve_file(path: str):
     full_path = os.path.join(os.getcwd(), path)
     return FileResponse(full_path)
@@ -296,4 +309,3 @@ def swing_top():
 
         <p>※ アップロード後に連続写真10枚と mid10 抽出設定が表示されます</p>
     """)
-
