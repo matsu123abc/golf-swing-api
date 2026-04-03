@@ -25,8 +25,14 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           auth-type: "SERVICE_PRINCIPAL"
 
-      - name: Zip package
-        run: zip -r app.zip .
+      - name: Create deployment ZIP
+        run: |
+          zip -r app.zip . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x "node_modules/*" \
+            -x "venv/*" \
+            -x "__pycache__/*"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
