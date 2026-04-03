@@ -1,5 +1,8 @@
+import azure.functions as func
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.responses import HTMLResponse, FileResponse
+from mangum import Mangum
+
 import uuid
 import shutil
 import os
@@ -7,26 +10,42 @@ import cv2
 from ultralytics import YOLO
 from PIL import Image, ImageDraw, ImageFont
 
-# =============================
+# ==========================================
 # FastAPI アプリ
-# =============================
+# ==========================================
 app = FastAPI()
 
-# =============================
-# YOLO モデル（遅延ロード）
-# =============================
+# ==========================================
+# 保存先はすべて /tmp（Function App の高速領域）
+# ==========================================
+TMP_DIR = "/tmp"
+
+# ==========================================
+# YOLO モデル（遅延ロード & /tmp に配置）
+# ==========================================
 yolo_model = None
 
 def get_model():
     global yolo_model
     if yolo_model is None:
-        yolo_model = YOLO("yolov8s.pt")
+        model_path = f"{TMP_DIR}/yolov8s.pt"
+
+        # モデルが無ければダウンロード（初回のみ）
+        if not os.path.exists(model_path):
+            import requests
+            url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt"
+            r = requests.get(url)
+            with open(model_path, "wb") as f:
+                f.write(r.content)
+
+        yolo_model = YOLO(model_path)
+
     return yolo_model
 
 
-# =============================
+# ==========================================
 # YOLO クロップ（上下40%余白）
-# =============================
+# ==========================================
 def crop_person(image_path, margin_x=0.05, margin_y=0.40):
     img = cv2.imread(image_path)
     if img is None:
@@ -61,9 +80,9 @@ def crop_person(image_path, margin_x=0.05, margin_y=0.40):
     return image_path
 
 
-# =============================
+# ==========================================
 # 連続写真10枚（0〜90%）
-# =============================
+# ==========================================
 def extract_10_frames(video_path):
     cap = cv2.VideoCapture(video_path)
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -81,9 +100,9 @@ def extract_10_frames(video_path):
     cap.release()
 
 
-# =============================
+# ==========================================
 # mid10 抽出（任意範囲）
-# =============================
+# ==========================================
 def extract_mid10(video_path, start_ratio, end_ratio):
     cap = cv2.VideoCapture(video_path)
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -101,11 +120,11 @@ def extract_mid10(video_path, start_ratio, end_ratio):
     cap.release()
 
 
-# =============================
+# ==========================================
 # mid10 コラージュ生成
-# =============================
+# ==========================================
 def create_collage_mid10(file_id):
-    images = [Image.open(f"./{file_id}.mp4_mid_{i}.jpg") for i in range(10)]
+    images = [Image.open(f"{TMP_DIR}/{file_id}.mp4_mid_{i}.jpg") for i in range(10)]
     resized = [img.resize((300, int(img.height * 300 / img.width))) for img in images]
 
     w, h = resized[0].size
@@ -126,14 +145,14 @@ def create_collage_mid10(file_id):
         draw.text((x + 10, y + 10), num, font=font, fill="black")
         draw.text((x + 12, y + 12), num, font=font, fill="white")
 
-    out = f"./{file_id}.mp4_mid10_collage.jpg"
+    out = f"{TMP_DIR}/{file_id}.mp4_mid10_collage.jpg"
     collage.save(out)
     return out
 
 
-# =============================
-# 画面①：アップロード画面（GET）
-# =============================
+# ==========================================
+# 画面①：アップロード画面
+# ==========================================
 @app.get("/tools/swing/upload")
 def upload_page():
     return HTMLResponse("""
@@ -145,13 +164,13 @@ def upload_page():
     """)
 
 
-# =============================
+# ==========================================
 # 画面①：アップロード → 連続写真表示
-# =============================
+# ==========================================
 @app.post("/tools/swing/upload")
 async def upload(video: UploadFile):
     file_id = str(uuid.uuid4())
-    save_path = f"./{file_id}.mp4"
+    save_path = f"{TMP_DIR}/{file_id}.mp4"
 
     with open(save_path, "wb") as f:
         shutil.copyfileobj(video.file, f)
@@ -214,16 +233,16 @@ async def upload(video: UploadFile):
     """)
 
 
-# =============================
+# ==========================================
 # 画面②：mid10 抽出結果
-# =============================
+# ==========================================
 @app.post("/tools/swing/extract_mid10")
 async def extract_mid10_page(
     file_id: str = Form(...),
     mid10_start: float = Form(...),
     mid10_end: float = Form(...)
 ):
-    video_path = f"./{file_id}.mp4"
+    video_path = f"{TMP_DIR}/{file_id}.mp4"
 
     extract_mid10(video_path, mid10_start, mid10_end)
     create_collage_mid10(file_id)
@@ -244,58 +263,21 @@ async def extract_mid10_page(
             <button>コラージュ画像をダウンロード</button>
         </a>
 
-        <h3>Chat に投げるプロンプト（コピペ用）</h3>
-        <textarea id="promptArea" style="width:700px; height:260px;">
-以下はゴルフスイングの mid10（任意設定）の連続写真（1〜10番）です。
-クラブの動き・フェース向き・手元の軌道・クラブパスのみを分析してください。
-人物の身体的特徴には触れないでください。
-
-【分析内容】
-1. 球筋から推測されるクラブの動き
-2. どの局面（1〜10番）で問題が起きているか
-3. その局面で起きているクラブの動作
-4. その動作が球筋にどう影響したか
-5. 局面番号ごとの改善ポイント（クラブの動きのみ）
-6. 局面番号ごとの練習ドリル（クラブ軌道・フェース向きに限定）
-
-【球筋】
-（ここに球筋を入力）
-
-【画像】
-（上のコラージュ画像を Chat に貼ってください）
-        </textarea>
-
-        <button onclick="copyPrompt()" style="margin-top:10px;">コピー</button>
-
-        <script>
-        function copyPrompt() {
-            const textarea = document.getElementById("promptArea");
-            textarea.select();
-            textarea.setSelectionRange(0, 99999);
-
-            navigator.clipboard.writeText(textarea.value)
-                .then(() => {
-                    alert("コピーしました！");
-                })
-                .catch(err => {
-                    alert("コピーに失敗しました");
-                });
-        }
-        </script>
-
         <br><br>
         <form action="/tools/swing/upload" method="get">
             <button>mid10 の範囲を再調整する</button>
         </form>
 """)
 
-# =============================
+
+# ==========================================
 # 動画・画像配信
-# =============================
+# ==========================================
 @app.get("/tools/swing/video/{path}")
 def serve_file(path: str):
-    full_path = os.path.join(os.getcwd(), path)
+    full_path = os.path.join(TMP_DIR, path)
     return FileResponse(full_path)
+
 
 @app.get("/tools/swing")
 def swing_top():
@@ -309,3 +291,12 @@ def swing_top():
 
         <p>※ アップロード後に連続写真10枚と mid10 抽出設定が表示されます</p>
     """)
+
+
+# ==========================================
+# Azure Function App エントリポイント
+# ==========================================
+handler = Mangum(app)
+
+async def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
+    return await func.AsgiMiddleware(app).handle_async(req, context)
