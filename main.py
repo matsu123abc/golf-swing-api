@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.responses import FileResponse
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 app = FastAPI()
 
@@ -64,7 +64,6 @@ async def upload_video(video: UploadFile = File(...)):
 
 @app.post("/tools/swing/extract-mid10", response_class=HTMLResponse)
 async def extract_mid10(video: UploadFile = File(...)):
-    # 保存先
     save_dir = "/home/site/wwwroot/uploads"
     os.makedirs(save_dir, exist_ok=True)
 
@@ -72,7 +71,6 @@ async def extract_mid10(video: UploadFile = File(...)):
     with open(video_path, "wb") as f:
         f.write(await video.read())
 
-    # 動画読み込み
     cap = cv2.VideoCapture(video_path)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -80,28 +78,37 @@ async def extract_mid10(video: UploadFile = File(...)):
     start = int(total_frames * 0.40)
     end = int(total_frames * 0.50)
 
-    # 40〜50% の範囲から10枚を均等に抽出
+    # 10枚だけ均等に抽出
     indices = np.linspace(start, end - 1, 10, dtype=int)
 
     extracted_paths = []
 
-    for i in indices:
-        cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+    for idx in indices:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
         ret, frame = cap.read()
         if not ret:
             continue
 
-        frame_path = f"{save_dir}/mid10_{i}.jpg"
+        frame_path = f"{save_dir}/mid10_{idx}.jpg"
         cv2.imwrite(frame_path, frame)
         extracted_paths.append(frame_path)
 
     cap.release()
 
-    # HTML で一覧表示
-    html = "<h2>mid10 抽出フレーム</h2>"
-    for p in extracted_paths:
-        filename = p.split("/")[-1]
-        html += f'<img src="/tools/swing/image/{filename}" width="200"><br>'
+    # コラージュ生成
+    collage_path = f"{save_dir}/mid10_collage.jpg"
+    create_collage_mid10(extracted_paths, collage_path)
+
+    # HTML（10枚は表示しない）
+    html = "<h2>mid10 コラージュ画像</h2>"
+    html += f'<img src="/tools/swing/image/mid10_collage.jpg" width="600"><br><br>'
+
+    # ダウンロードボタン
+    html += f'''
+    <a href="/tools/swing/image/mid10_collage.jpg" download="mid10_collage.jpg">
+        <button>コラージュ画像をダウンロード</button>
+    </a>
+    '''
 
     return html
 
@@ -109,4 +116,35 @@ async def extract_mid10(video: UploadFile = File(...)):
 def get_image(filename: str):
     file_path = f"/home/site/wwwroot/uploads/{filename}"
     return FileResponse(file_path, media_type="image/jpeg")
+
+def create_collage_mid10(image_paths, output_path):
+    # 画像を読み込み
+    images = [Image.open(p) for p in image_paths]
+
+    # 幅300pxに統一
+    resized = [img.resize((300, int(img.height * 300 / img.width))) for img in images]
+
+    # 横5 × 縦2 のコラージュ
+    w, h = resized[0].size
+    collage = Image.new("RGB", (w * 5, h * 2), (0, 0, 0))
+
+    # フォント設定
+    try:
+        font = ImageFont.truetype("arial.ttf", 40)
+    except:
+        font = ImageFont.load_default()
+
+    for idx, img in enumerate(resized):
+        x = (idx % 5) * w
+        y = (idx // 5) * h
+        collage.paste(img, (x, y))
+
+        # 番号描画（白文字＋黒縁取り）
+        draw = ImageDraw.Draw(collage)
+        num = str(idx + 1)
+        draw.text((x + 10, y + 10), num, font=font, fill="black")
+        draw.text((x + 12, y + 12), num, font=font, fill="white")
+
+    collage.save(output_path)
+    return output_path
 
