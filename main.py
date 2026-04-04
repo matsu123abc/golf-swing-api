@@ -29,8 +29,8 @@ async def upload_video(video: UploadFile = File(...)):
     save_dir = "/home/site/wwwroot/uploads"
     os.makedirs(save_dir, exist_ok=True)
 
-    save_path = f"{save_dir}/{video.filename}"
-    with open(save_path, "wb") as f:
+    video_path = f"{save_dir}/{video.filename}"
+    with open(video_path, "wb") as f:
         f.write(await video.read())
 
     return f"""
@@ -40,7 +40,7 @@ async def upload_video(video: UploadFile = File(...)):
         <source src="/tools/swing/video/{video.filename}" type="video/mp4">
     </video>
 
-    <div>
+    <div style="margin-top:10px;">
         <button onclick="setSpeed(0.25)">0.25x</button>
         <button onclick="setSpeed(0.5)">0.5x</button>
         <button onclick="setSpeed(0.75)">0.75x</button>
@@ -52,7 +52,16 @@ async def upload_video(video: UploadFile = File(...)):
         document.getElementById('swingVideo').playbackRate = rate;
     }}
     </script>
+
+    <hr>
+
+    <h3>mid10 抽出</h3>
+    <form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="video" value="{video.filename}">
+        <button type="submit">mid10 を抽出する</button>
+    </form>
     """
+
 
 @app.post("/tools/swing/extract-mid10", response_class=HTMLResponse)
 async def extract_mid10(video: UploadFile = File(...)):
