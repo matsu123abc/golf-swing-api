@@ -1,12 +1,14 @@
 import os
 from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.responses import HTMLResponse
-from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse, FileResponse
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 app = FastAPI()
+
+UPLOAD_DIR = "/home/site/wwwroot/uploads"
+
 
 def crop_center(image_path, x1p, x2p, y1p, y2p):
     img = cv2.imread(image_path)
@@ -15,7 +17,6 @@ def crop_center(image_path, x1p, x2p, y1p, y2p):
 
     h, w, _ = img.shape
 
-    # UI からのパーセント値を使用
     x1 = int(w * (x1p / 100))
     x2 = int(w * (x2p / 100))
     y1 = int(h * (y1p / 100))
@@ -28,17 +29,12 @@ def crop_center(image_path, x1p, x2p, y1p, y2p):
 
 
 def create_collage_mid10(image_paths, output_path):
-    # 画像を読み込み
     images = [Image.open(p) for p in image_paths]
-
-    # 幅300pxに統一
     resized = [img.resize((300, int(img.height * 300 / img.width))) for img in images]
 
-    # 横5 × 縦2 のコラージュ
     w, h = resized[0].size
     collage = Image.new("RGB", (w * 5, h * 2), (0, 0, 0))
 
-    # フォント設定
     try:
         font = ImageFont.truetype("arial.ttf", 40)
     except:
@@ -49,7 +45,6 @@ def create_collage_mid10(image_paths, output_path):
         y = (idx // 5) * h
         collage.paste(img, (x, y))
 
-        # 番号描画（白文字＋黒縁取り）
         draw = ImageDraw.Draw(collage)
         num = str(idx + 1)
         draw.text((x + 10, y + 10), num, font=font, fill="black")
@@ -57,6 +52,7 @@ def create_collage_mid10(image_paths, output_path):
 
     collage.save(output_path)
     return output_path
+
 
 @app.get("/tools/swing", response_class=HTMLResponse)
 def swing_page():
@@ -69,127 +65,203 @@ def swing_page():
     </form>
     """
 
+
 @app.get("/tools/swing/video/{filename}")
 def get_video(filename: str):
-    file_path = f"/home/site/wwwroot/uploads/{filename}"
+    file_path = f"{UPLOAD_DIR}/{filename}"
     return FileResponse(file_path, media_type="video/mp4")
+
+
+@app.get("/tools/swing/image/{filename}")
+def get_image(filename: str):
+    file_path = f"{UPLOAD_DIR}/{filename}"
+    return FileResponse(file_path, media_type="image/jpeg")
+
 
 @app.post("/tools/swing/upload", response_class=HTMLResponse)
 async def upload_video(video: UploadFile = File(...)):
-    save_dir = "/home/site/wwwroot/uploads"
-    os.makedirs(save_dir, exist_ok=True)
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    video_path = f"{save_dir}/{video.filename}"
+    video_path = f"{UPLOAD_DIR}/{video.filename}"
     with open(video_path, "wb") as f:
         f.write(await video.read())
 
     return f"""
-    <h2>🏌️‍♂️ アップロード完了：{video.filename}</h2>
+<h2>🏌️‍♂️ アップロード完了：{video.filename}</h2>
 
-    <!-- 動画コンテナ（プレビュー枠を重ねるために relative） -->
-    <div id="videoContainer" style="position: relative; display: inline-block;">
-        <video id="swingVideo" width="360" controls>
-            <source src="/tools/swing/video/{video.filename}" type="video/mp4">
-        </video>
+<!-- 動画コンテナ（プレビュー枠を重ねるために relative） -->
+<div id="videoContainer" style="position: relative; display: inline-block;">
+    <video id="swingVideo" width="360" controls>
+        <source src="/tools/swing/video/{video.filename}" type="video/mp4">
+    </video>
 
-        <!-- プレビュー枠 -->
-        <div id="cropPreview" style="
-            position: absolute;
-            border: 2px solid red;
-            background-color: rgba(255,0,0,0.15);
-            pointer-events: none;
-        "></div>
-    </div>
+    <!-- クロップ範囲プレビュー枠 -->
+    <div id="cropPreview" style="
+        position: absolute;
+        border: 2px solid red;
+        background-color: rgba(255,0,0,0.15);
+        pointer-events: none;
+    "></div>
+</div>
 
-    <div style="margin-top:10px;">
-        <button onclick="setSpeed(0.25)">0.25x</button>
-        <button onclick="setSpeed(0.5)">0.5x</button>
-        <button onclick="setSpeed(0.75)">0.75x</button>
-        <button onclick="setSpeed(1.0)">1.0x</button>
-    </div>
+<div style="margin-top:10px;">
+    <button onclick="setSpeed(0.25)">0.25x</button>
+    <button onclick="setSpeed(0.5)">0.5x</button>
+    <button onclick="setSpeed(0.75)">0.75x</button>
+    <button onclick="setSpeed(1.0)">1.0x</button>
+</div>
 
-    <script>
-    function setSpeed(rate) {{
-        document.getElementById('swingVideo').playbackRate = rate;
+<script>
+function setSpeed(rate) {{
+    document.getElementById('swingVideo').playbackRate = rate;
+}}
+</script>
+
+<!-- 進捗バー -->
+<div style="width:360px; height:10px; background:#ddd; margin-top:10px; position:relative;">
+    <div id="playProgress" style="
+        position:absolute;
+        top:0;
+        left:0;
+        height:10px;
+        width:0%;
+        background:#4CAF50;
+    "></div>
+
+    <div id="startMarker" style="
+        position:absolute;
+        top:0;
+        width:2px;
+        height:10px;
+        background:red;
+    "></div>
+
+    <div id="endMarker" style="
+        position:absolute;
+        top:0;
+        width:2px;
+        height:10px;
+        background:red;
+    "></div>
+</div>
+
+<hr>
+
+<h3>抽出範囲（%）</h3>
+抽出開始（start）:
+<input type="range" name="start" id="startRange" min="0" max="90" value="40" oninput="updateMarkers()"> 
+<span id="startv">40%</span><br>
+
+抽出終了（end）:
+<input type="range" name="end" id="endRange" min="10" max="100" value="50" oninput="updateMarkers()"> 
+<span id="endv">50%</span><br><br>
+
+<h3>クロップ範囲（%）</h3>
+
+<form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="video_name" value="{video.filename}">
+
+    左（x1）: <input type="range" name="x1" min="0" max="50" value="30" oninput="updatePreview()"> <span id="x1v">30%</span><br>
+    右（x2）: <input type="range" name="x2" min="50" max="100" value="70" oninput="updatePreview()"> <span id="x2v">70%</span><br>
+    上（y1）: <input type="range" name="y1" min="0" max="50" value="10" oninput="updatePreview()"> <span id="y1v">10%</span><br>
+    下（y2）: <input type="range" name="y2" min="50" max="100" value="90" oninput="updatePreview()"> <span id="y2v">90%</span><br><br>
+
+    <!-- 抽出範囲もフォームで送る -->
+    <input type="hidden" name="start" id="startHidden" value="40">
+    <input type="hidden" name="end" id="endHidden" value="50">
+
+    <button type="submit">mid10 を抽出する</button>
+</form>
+
+<script>
+function updatePreview() {{
+    const video = document.getElementById("swingVideo");
+    const preview = document.getElementById("cropPreview");
+
+    const x1 = document.querySelector("input[name='x1']").value;
+    const x2 = document.querySelector("input[name='x2']").value;
+    const y1 = document.querySelector("input[name='y1']").value;
+    const y2 = document.querySelector("input[name='y2']").value;
+
+    document.getElementById("x1v").innerText = x1 + "%";
+    document.getElementById("x2v").innerText = x2 + "%";
+    document.getElementById("y1v").innerText = y1 + "%";
+    document.getElementById("y2v").innerText = y2 + "%";
+
+    const vw = video.clientWidth;
+    const vh = video.clientHeight;
+
+    const left = vw * (x1 / 100);
+    const top = vh * (y1 / 100);
+    const width = vw * ((x2 - x1) / 100);
+    const height = vh * ((y2 - y1) / 100);
+
+    preview.style.left = left + "px";
+    preview.style.top = top + "px";
+    preview.style.width = width + "px";
+    preview.style.height = height + "px";
+}}
+
+function updateMarkers() {{
+    const start = document.getElementById("startRange").value;
+    const end = document.getElementById("endRange").value;
+
+    document.getElementById("startv").innerText = start + "%";
+    document.getElementById("endv").innerText = end + "%";
+
+    document.getElementById("startHidden").value = start;
+    document.getElementById("endHidden").value = end;
+
+    const barWidth = 360;
+
+    document.getElementById("startMarker").style.left = (barWidth * (start / 100)) + "px";
+    document.getElementById("endMarker").style.left = (barWidth * (end / 100)) + "px";
+}}
+
+function updatePlayProgress() {{
+    const video = document.getElementById("swingVideo");
+    const progress = document.getElementById("playProgress");
+
+    if (!video.duration) {{
+        requestAnimationFrame(updatePlayProgress);
+        return;
     }}
-    </script>
 
-    <hr>
+    const percent = (video.currentTime / video.duration) * 100;
+    progress.style.width = percent + "%";
 
-    <h3>クロップ範囲（%）</h3>
+    requestAnimationFrame(updatePlayProgress);
+}}
 
-    <form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
-        <input type="file" name="video" accept="video/mp4"><br><br>
+window.onload = function() {{
+    updatePreview();
+    updateMarkers();
+    updatePlayProgress();
+}};
+</script>
+"""
 
-        左（x1）: <input type="range" name="x1" min="0" max="50" value="30" oninput="updatePreview()"> <span id="x1v">30%</span><br>
-        右（x2）: <input type="range" name="x2" min="50" max="100" value="70" oninput="updatePreview()"> <span id="x2v">70%</span><br>
-        上（y1）: <input type="range" name="y1" min="0" max="50" value="10" oninput="updatePreview()"> <span id="y1v">10%</span><br>
-        下（y2）: <input type="range" name="y2" min="50" max="100" value="90" oninput="updatePreview()"> <span id="y2v">90%</span><br><br>
-
-        <button type="submit">mid10 を抽出する</button>
-    </form>
-
-    <script>
-    function updatePreview() {{
-        const video = document.getElementById("swingVideo");
-        const preview = document.getElementById("cropPreview");
-
-        const x1 = document.querySelector("input[name='x1']").value;
-        const x2 = document.querySelector("input[name='x2']").value;
-        const y1 = document.querySelector("input[name='y1']").value;
-        const y2 = document.querySelector("input[name='y2']").value;
-
-        // 数値表示更新
-        document.getElementById("x1v").innerText = x1 + "%";
-        document.getElementById("x2v").innerText = x2 + "%";
-        document.getElementById("y1v").innerText = y1 + "%";
-        document.getElementById("y2v").innerText = y2 + "%";
-
-        const vw = video.clientWidth;
-        const vh = video.clientHeight;
-
-        // パーセント → px
-        const left = vw * (x1 / 100);
-        const top = vh * (y1 / 100);
-        const width = vw * ((x2 - x1) / 100);
-        const height = vh * ((y2 - y1) / 100);
-
-        preview.style.left = left + "px";
-        preview.style.top = top + "px";
-        preview.style.width = width + "px";
-        preview.style.height = height + "px";
-    }}
-
-    // 初期表示
-    window.onload = updatePreview;
-    </script>
-    """
 
 @app.post("/tools/swing/extract-mid10", response_class=HTMLResponse)
 async def extract_mid10(
-    video: UploadFile = File(...),
+    video_name: str = Form(...),
     x1: int = Form(...),
     x2: int = Form(...),
     y1: int = Form(...),
-    y2: int = Form(...)
+    y2: int = Form(...),
+    start: int = Form(...),
+    end: int = Form(...)
 ):
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    save_dir = "/home/site/wwwroot/uploads"
-    os.makedirs(save_dir, exist_ok=True)
-
-    video_path = f"{save_dir}/{video.filename}"
-    with open(video_path, "wb") as f:
-        f.write(await video.read())
-
+    video_path = f"{UPLOAD_DIR}/{video_name}"
     cap = cv2.VideoCapture(video_path)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    # mid10 = 40%〜50%
-    start = int(total_frames * 0.40)
-    end = int(total_frames * 0.50)
+    start_frame = int(total_frames * (start / 100))
+    end_frame = int(total_frames * (end / 100))
 
-    # 10枚だけ均等に抽出
-    indices = np.linspace(start, end - 1, 10, dtype=int)
+    indices = np.linspace(start_frame, max(start_frame, end_frame - 1), 10, dtype=int)
 
     extracted_paths = []
 
@@ -199,25 +271,20 @@ async def extract_mid10(
         if not ret:
             continue
 
-        frame_path = f"{save_dir}/mid10_{idx}.jpg"
+        frame_path = f"{UPLOAD_DIR}/mid10_{idx}.jpg"
         cv2.imwrite(frame_path, frame)
 
-        # 中央クロップ（引数を正しく渡す）
         crop_center(frame_path, x1, x2, y1, y2)
-
         extracted_paths.append(frame_path)
 
     cap.release()
 
-    # コラージュ生成
-    collage_path = f"{save_dir}/mid10_collage.jpg"
+    collage_path = f"{UPLOAD_DIR}/mid10_collage.jpg"
     create_collage_mid10(extracted_paths, collage_path)
 
-    # HTML（10枚は表示しない）
     html = "<h2>mid10 コラージュ画像</h2>"
     html += f'<img src="/tools/swing/image/mid10_collage.jpg" width="600"><br><br>'
 
-    # ダウンロードボタン
     html += f'''
     <a href="/tools/swing/image/mid10_collage.jpg" download="mid10_collage.jpg">
         <button>コラージュ画像をダウンロード</button>
@@ -254,7 +321,7 @@ async def extract_mid10(
     function copyPrompt() {
         const textarea = document.getElementById("promptArea");
         textarea.select();
-        textarea.setSelectionRange(0, 99999); // スマホ対応
+        textarea.setSelectionRange(0, 99999);
 
         navigator.clipboard.writeText(textarea.value)
             .then(() => {
@@ -268,10 +335,3 @@ async def extract_mid10(
     """
 
     return html
-
-
-@app.get("/tools/swing/image/{filename}")
-def get_image(filename: str):
-    file_path = f"/home/site/wwwroot/uploads/{filename}"
-    return FileResponse(file_path, media_type="image/jpeg")
-
