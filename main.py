@@ -8,51 +8,24 @@ from PIL import Image, ImageDraw, ImageFont
 
 app = FastAPI()
 
-def crop_center(image_path):
+def crop_center(image_path, x1p, x2p, y1p, y2p):
     img = cv2.imread(image_path)
     if img is None:
         return image_path
 
     h, w, _ = img.shape
 
-    # 中央 40〜60% を切り出す
-    x1 = int(w * 0.30)
-    x2 = int(w * 0.70)
-    y1 = int(h * 0.10)
-    y2 = int(h * 0.90)
+    # UI からのパーセント値を使用
+    x1 = int(w * (x1p / 100))
+    x2 = int(w * (x2p / 100))
+    y1 = int(h * (y1p / 100))
+    y2 = int(h * (y2p / 100))
 
     cropped = img[y1:y2, x1:x2]
     cv2.imwrite(image_path, cropped)
 
     return image_path
 
-def crop_person(image_path):
-    img = cv2.imread(image_path)
-    if img is None:
-        return image_path
-
-    hog = cv2.HOGDescriptor()
-    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-
-    rects, _ = hog.detectMultiScale(img, winStride=(8, 8))
-
-    if len(rects) == 0:
-        return image_path  # 検出できない場合は元画像のまま
-
-    # 最初の人物を採用
-    (x, y, w, h) = rects[0]
-
-    # 少し余白をつけてクロップ
-    pad = 20
-    x1 = max(0, x - pad)
-    y1 = max(0, y - pad)
-    x2 = min(img.shape[1], x + w + pad)
-    y2 = min(img.shape[0], y + h + pad)
-
-    cropped = img[y1:y2, x1:x2]
-    cv2.imwrite(image_path, cropped)
-
-    return image_path
 
 def create_collage_mid10(image_paths, output_path):
     # 画像を読み込み
@@ -137,10 +110,31 @@ async def upload_video(video: UploadFile = File(...)):
         <input type="file" name="video" accept="video/mp4">
         <button type="submit">mid10 を抽出する</button>
     </form>
+
+    <h3>クロップ範囲（%）</h3>
+
+    <form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
+        <input type="file" name="video" accept="video/mp4"><br><br>
+
+        左（x1）: <input type="range" name="x1" min="0" max="50" value="30"> 30%<br>
+        右（x2）: <input type="range" name="x2" min="50" max="100" value="70"> 70%<br>
+        上（y1）: <input type="range" name="y1" min="0" max="50" value="10"> 10%<br>
+        下（y2）: <input type="range" name="y2" min="50" max="100" value="90"> 90%<br><br>
+
+        <button type="submit">mid10 を抽出する</button>
+    </form>
+
     """
 
 @app.post("/tools/swing/extract-mid10", response_class=HTMLResponse)
-async def extract_mid10(video: UploadFile = File(...)):
+async def extract_mid10(
+    video: UploadFile = File(...),
+    x1: int = Form(...),
+    x2: int = Form(...),
+    y1: int = Form(...),
+    y2: int = Form(...)
+):
+
     save_dir = "/home/site/wwwroot/uploads"
     os.makedirs(save_dir, exist_ok=True)
 
@@ -171,7 +165,6 @@ async def extract_mid10(video: UploadFile = File(...)):
 
         # 人物クロップ
         crop_center(frame_path)
-        #crop_person(frame_path)
 
         extracted_paths.append(frame_path)
 
@@ -241,3 +234,4 @@ async def extract_mid10(video: UploadFile = File(...)):
 def get_image(filename: str):
     file_path = f"/home/site/wwwroot/uploads/{filename}"
     return FileResponse(file_path, media_type="image/jpeg")
+
