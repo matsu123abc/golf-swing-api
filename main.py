@@ -57,11 +57,10 @@ async def upload_video(video: UploadFile = File(...)):
 
     <h3>mid10 抽出</h3>
     <form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="video" value="{video.filename}">
+        <input type="file" name="video" accept="video/mp4">
         <button type="submit">mid10 を抽出する</button>
     </form>
     """
-
 
 @app.post("/tools/swing/extract-mid10", response_class=HTMLResponse)
 async def extract_mid10(video: UploadFile = File(...)):
