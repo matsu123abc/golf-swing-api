@@ -38,5 +38,5 @@ jobs:
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
-        app-name: "golf-swing-api-b2dqcqgpdnayfvfc"
+        app-name: "golf-swing-api"
         package: package
