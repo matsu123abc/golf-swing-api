@@ -8,6 +8,24 @@ from PIL import Image, ImageDraw, ImageFont
 
 app = FastAPI()
 
+def crop_center(image_path):
+    img = cv2.imread(image_path)
+    if img is None:
+        return image_path
+
+    h, w, _ = img.shape
+
+    # 中央 40〜60% を切り出す
+    x1 = int(w * 0.30)
+    x2 = int(w * 0.70)
+    y1 = int(h * 0.10)
+    y2 = int(h * 0.90)
+
+    cropped = img[y1:y2, x1:x2]
+    cv2.imwrite(image_path, cropped)
+
+    return image_path
+
 def crop_person(image_path):
     img = cv2.imread(image_path)
     if img is None:
@@ -152,7 +170,8 @@ async def extract_mid10(video: UploadFile = File(...)):
         cv2.imwrite(frame_path, frame)
 
         # 人物クロップ
-        crop_person(frame_path)
+        crop_center(frame_path)
+        #crop_person(frame_path)
 
         extracted_paths.append(frame_path)
 
