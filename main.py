@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
 from fastapi.responses import FileResponse
 import cv2
@@ -105,12 +105,6 @@ async def upload_video(video: UploadFile = File(...)):
 
     <hr>
 
-    <h3>mid10 抽出</h3>
-    <form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
-        <input type="file" name="video" accept="video/mp4">
-        <button type="submit">mid10 を抽出する</button>
-    </form>
-
     <h3>クロップ範囲（%）</h3>
 
     <form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
@@ -154,19 +148,19 @@ async def extract_mid10(
 
     extracted_paths = []
 
-    for idx in indices:
-        cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
-        ret, frame = cap.read()
-        if not ret:
-            continue
+for idx in indices:
+    cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+    ret, frame = cap.read()
+    if not ret:
+        continue
 
-        frame_path = f"{save_dir}/mid10_{idx}.jpg"
-        cv2.imwrite(frame_path, frame)
+    frame_path = f"{save_dir}/mid10_{idx}.jpg"
+    cv2.imwrite(frame_path, frame)
 
-        # 人物クロップ
-        crop_center(frame_path)
+    # 中央クロップ（引数を正しく渡す）
+    crop_center(frame_path, x1, x2, y1, y2)
 
-        extracted_paths.append(frame_path)
+    extracted_paths.append(frame_path)
 
     cap.release()
 
