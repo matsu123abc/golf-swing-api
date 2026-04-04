@@ -192,6 +192,49 @@ async def extract_mid10(video: UploadFile = File(...)):
     </a>
     '''
 
+    html += """
+    <hr>
+    <h3>Chat に投げるプロンプト（コピペ用）</h3>
+
+    <textarea id="promptArea" style="width:700px; height:260px;">
+    以下はゴルフスイングの mid10（任意設定）の連続写真（1〜10番）です。
+    クラブの動き・フェース向き・手元の軌道・クラブパスのみを分析してください。
+    人物の身体的特徴には触れないでください。
+
+    【分析内容】
+    1. 球筋から推測されるクラブの動き
+    2. どの局面（1〜10番）で問題が起きているか
+    3. その局面で起きているクラブの動作
+    4. その動作が球筋にどう影響したか
+    5. 局面番号ごとの改善ポイント（クラブの動きのみ）
+    6. 局面番号ごとの練習ドリル（クラブ軌道・フェース向きに限定）
+
+    【球筋】
+    （ここに球筋を入力）
+
+    【画像】
+    （上のコラージュ画像を Chat に貼ってください）
+    </textarea>
+
+    <button onclick="copyPrompt()" style="margin-top:10px;">コピー</button>
+
+    <script>
+    function copyPrompt() {
+        const textarea = document.getElementById("promptArea");
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // スマホ対応
+
+        navigator.clipboard.writeText(textarea.value)
+            .then(() => {
+                alert("コピーしました！");
+            })
+            .catch(err => {
+                alert("コピーに失敗しました");
+            });
+    }
+    </script>
+    """
+
     return html
 
 @app.get("/tools/swing/image/{filename}")
