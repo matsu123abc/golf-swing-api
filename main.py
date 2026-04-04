@@ -86,9 +86,20 @@ async def upload_video(video: UploadFile = File(...)):
     return f"""
     <h2>🏌️‍♂️ アップロード完了：{video.filename}</h2>
 
-    <video id="swingVideo" width="360" controls>
-        <source src="/tools/swing/video/{video.filename}" type="video/mp4">
-    </video>
+    <!-- 動画コンテナ（プレビュー枠を重ねるために relative） -->
+    <div id="videoContainer" style="position: relative; display: inline-block;">
+        <video id="swingVideo" width="360" controls>
+            <source src="/tools/swing/video/{video.filename}" type="video/mp4">
+        </video>
+
+        <!-- プレビュー枠 -->
+        <div id="cropPreview" style="
+            position: absolute;
+            border: 2px solid red;
+            background-color: rgba(255,0,0,0.15);
+            pointer-events: none;
+        "></div>
+    </div>
 
     <div style="margin-top:10px;">
         <button onclick="setSpeed(0.25)">0.25x</button>
@@ -110,14 +121,48 @@ async def upload_video(video: UploadFile = File(...)):
     <form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
         <input type="file" name="video" accept="video/mp4"><br><br>
 
-        左（x1）: <input type="range" name="x1" min="0" max="50" value="30"> 30%<br>
-        右（x2）: <input type="range" name="x2" min="50" max="100" value="70"> 70%<br>
-        上（y1）: <input type="range" name="y1" min="0" max="50" value="10"> 10%<br>
-        下（y2）: <input type="range" name="y2" min="50" max="100" value="90"> 90%<br><br>
+        左（x1）: <input type="range" name="x1" min="0" max="50" value="30" oninput="updatePreview()"> <span id="x1v">30%</span><br>
+        右（x2）: <input type="range" name="x2" min="50" max="100" value="70" oninput="updatePreview()"> <span id="x2v">70%</span><br>
+        上（y1）: <input type="range" name="y1" min="0" max="50" value="10" oninput="updatePreview()"> <span id="y1v">10%</span><br>
+        下（y2）: <input type="range" name="y2" min="50" max="100" value="90" oninput="updatePreview()"> <span id="y2v">90%</span><br><br>
 
         <button type="submit">mid10 を抽出する</button>
     </form>
 
+    <script>
+    function updatePreview() {{
+        const video = document.getElementById("swingVideo");
+        const preview = document.getElementById("cropPreview");
+
+        const x1 = document.querySelector("input[name='x1']").value;
+        const x2 = document.querySelector("input[name='x2']").value;
+        const y1 = document.querySelector("input[name='y1']").value;
+        const y2 = document.querySelector("input[name='y2']").value;
+
+        // 数値表示更新
+        document.getElementById("x1v").innerText = x1 + "%";
+        document.getElementById("x2v").innerText = x2 + "%";
+        document.getElementById("y1v").innerText = y1 + "%";
+        document.getElementById("y2v").innerText = y2 + "%";
+
+        const vw = video.clientWidth;
+        const vh = video.clientHeight;
+
+        // パーセント → px
+        const left = vw * (x1 / 100);
+        const top = vh * (y1 / 100);
+        const width = vw * ((x2 - x1) / 100);
+        const height = vh * ((y2 - y1) / 100);
+
+        preview.style.left = left + "px";
+        preview.style.top = top + "px";
+        preview.style.width = width + "px";
+        preview.style.height = height + "px";
+    }}
+
+    // 初期表示
+    window.onload = updatePreview;
+    </script>
     """
 
 @app.post("/tools/swing/extract-mid10", response_class=HTMLResponse)
