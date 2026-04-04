@@ -80,15 +80,17 @@ async def extract_mid10(video: UploadFile = File(...)):
     start = int(total_frames * 0.40)
     end = int(total_frames * 0.50)
 
+    # 40〜50% の範囲から10枚を均等に抽出
+    indices = np.linspace(start, end - 1, 10, dtype=int)
+
     extracted_paths = []
 
-    for i in range(start, end):
+    for i in indices:
         cap.set(cv2.CAP_PROP_POS_FRAMES, i)
         ret, frame = cap.read()
         if not ret:
             continue
 
-        # 保存
         frame_path = f"{save_dir}/mid10_{i}.jpg"
         cv2.imwrite(frame_path, frame)
         extracted_paths.append(frame_path)
