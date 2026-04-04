@@ -23,14 +23,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Archive app (NO ZIP DEPLOY)
+    - name: Prepare package folder (NO ZIP)
       run: |
         mkdir package
-        cp -r * package/
+        shopt -s extglob
+        cp -r !(package) package/
 
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
-        app-name: "<YOUR_APP_SERVICE_NAME>"
+        app-name: "golf-swing-api-b2dqcqgpdnayfvfc"
         publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISH_PROFILE }}
         package: package
