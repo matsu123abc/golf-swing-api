@@ -148,19 +148,19 @@ async def extract_mid10(
 
     extracted_paths = []
 
-for idx in indices:
-    cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
-    ret, frame = cap.read()
-    if not ret:
-        continue
+    for idx in indices:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+        ret, frame = cap.read()
+        if not ret:
+            continue
 
-    frame_path = f"{save_dir}/mid10_{idx}.jpg"
-    cv2.imwrite(frame_path, frame)
+        frame_path = f"{save_dir}/mid10_{idx}.jpg"
+        cv2.imwrite(frame_path, frame)
 
-    # 中央クロップ（引数を正しく渡す）
-    crop_center(frame_path, x1, x2, y1, y2)
+        # 中央クロップ（引数を正しく渡す）
+        crop_center(frame_path, x1, x2, y1, y2)
 
-    extracted_paths.append(frame_path)
+        extracted_paths.append(frame_path)
 
     cap.release()
 
@@ -184,23 +184,23 @@ for idx in indices:
     <h3>Chat に投げるプロンプト（コピペ用）</h3>
 
     <textarea id="promptArea" style="width:700px; height:260px;">
-    以下はゴルフスイングの mid10（任意設定）の連続写真（1〜10番）です。
-    クラブの動き・フェース向き・手元の軌道・クラブパスのみを分析してください。
-    人物の身体的特徴には触れないでください。
+以下はゴルフスイングの mid10（任意設定）の連続写真（1〜10番）です。
+クラブの動き・フェース向き・手元の軌道・クラブパスのみを分析してください。
+人物の身体的特徴には触れないでください。
 
-    【分析内容】
-    1. 球筋から推測されるクラブの動き
-    2. どの局面（1〜10番）で問題が起きているか
-    3. その局面で起きているクラブの動作
-    4. その動作が球筋にどう影響したか
-    5. 局面番号ごとの改善ポイント（クラブの動きのみ）
-    6. 局面番号ごとの練習ドリル（クラブ軌道・フェース向きに限定）
+【分析内容】
+1. 球筋から推測されるクラブの動き
+2. どの局面（1〜10番）で問題が起きているか
+3. その局面で起きているクラブの動作
+4. その動作が球筋にどう影響したか
+5. 局面番号ごとの改善ポイント（クラブの動きのみ）
+6. 局面番号ごとの練習ドリル（クラブ軌道・フェース向きに限定）
 
-    【球筋】
-    （ここに球筋を入力）
+【球筋】
+（ここに球筋を入力）
 
-    【画像】
-    （上のコラージュ画像を Chat に貼ってください）
+【画像】
+（上のコラージュ画像を Chat に貼ってください）
     </textarea>
 
     <button onclick="copyPrompt()" style="margin-top:10px;">コピー</button>
@@ -223,6 +223,7 @@ for idx in indices:
     """
 
     return html
+
 
 @app.get("/tools/swing/image/{filename}")
 def get_image(filename: str):
