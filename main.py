@@ -87,6 +87,37 @@ async def upload_video(video: UploadFile = File(...)):
         f.write(await video.read())
 
     return f"""
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+<style>
+/* スマホ縦画面で文字を特大にする */
+@media screen and (orientation: portrait) {
+    body {
+        font-size: 28px;
+    }
+    h2, h3 {
+        font-size: 32px;
+    }
+    button {
+        font-size: 30px;
+        padding: 24px;
+        border-radius: 14px;
+    }
+    input[type="range"] {
+        width: 90%;
+        height: 40px;
+    }
+    span {
+        font-size: 28px;
+    }
+    #videoContainer {
+        transform: scale(1.2);   /* 動画も少し大きく */
+        transform-origin: top left;
+    }
+}
+</style>
+
 <h2>🏌️‍♂️ アップロード完了：{video.filename}</h2>
 
 <!-- 動画コンテナ（プレビュー枠を重ねるために relative） -->
