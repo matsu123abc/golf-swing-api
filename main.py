@@ -86,10 +86,9 @@ async def upload_video(video: UploadFile = File(...)):
     with open(video_path, "wb") as f:
         f.write(await video.read())
 
-    return f"""
-
+    html = """
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+
 <style>
 /* スマホ縦画面で文字を特大にする */
 @media screen and (orientation: portrait) {
@@ -112,21 +111,19 @@ async def upload_video(video: UploadFile = File(...)):
         font-size: 28px;
     }
     #videoContainer {
-        transform: scale(1.2);   /* 動画も少し大きく */
+        transform: scale(1.2);
         transform-origin: top left;
     }
 }
 </style>
 
-<h2>🏌️‍♂️ アップロード完了：{video.filename}</h2>
+<h2>🏌️‍♂️ アップロード完了：{video_name}</h2>
 
-<!-- 動画コンテナ（プレビュー枠を重ねるために relative） -->
 <div id="videoContainer" style="position: relative; display: inline-block;">
     <video id="swingVideo" width="360" controls>
-        <source src="/tools/swing/video/{video.filename}" type="video/mp4">
+        <source src="/tools/swing/video/{video_name}" type="video/mp4">
     </video>
 
-    <!-- クロップ範囲プレビュー枠 -->
     <div id="cropPreview" style="
         position: absolute;
         border: 2px solid red;
@@ -143,12 +140,11 @@ async def upload_video(video: UploadFile = File(...)):
 </div>
 
 <script>
-function setSpeed(rate) {{
+function setSpeed(rate) {
     document.getElementById('swingVideo').playbackRate = rate;
-}}
+}
 </script>
 
-<!-- 進捗バー -->
 <div style="width:360px; height:10px; background:#ddd; margin-top:10px; position:relative;">
     <div id="playProgress" style="
         position:absolute;
@@ -190,14 +186,13 @@ function setSpeed(rate) {{
 <h3>クロップ範囲（%）</h3>
 
 <form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
-    <input type="hidden" name="video_name" value="{video.filename}">
+    <input type="hidden" name="video_name" value="{video_name}">
 
     左（x1）: <input type="range" name="x1" min="0" max="50" value="30" oninput="updatePreview()"> <span id="x1v">30%</span><br>
     右（x2）: <input type="range" name="x2" min="50" max="100" value="70" oninput="updatePreview()"> <span id="x2v">70%</span><br>
     上（y1）: <input type="range" name="y1" min="0" max="50" value="10" oninput="updatePreview()"> <span id="y1v">10%</span><br>
     下（y2）: <input type="range" name="y2" min="50" max="100" value="90" oninput="updatePreview()"> <span id="y2v">90%</span><br><br>
 
-    <!-- 抽出範囲もフォームで送る -->
     <input type="hidden" name="start" id="startHidden" value="40">
     <input type="hidden" name="end" id="endHidden" value="50">
 
@@ -205,7 +200,7 @@ function setSpeed(rate) {{
 </form>
 
 <script>
-function updatePreview() {{
+function updatePreview() {
     const video = document.getElementById("swingVideo");
     const preview = document.getElementById("cropPreview");
 
@@ -222,18 +217,13 @@ function updatePreview() {{
     const vw = video.clientWidth;
     const vh = video.clientHeight;
 
-    const left = vw * (x1 / 100);
-    const top = vh * (y1 / 100);
-    const width = vw * ((x2 - x1) / 100);
-    const height = vh * ((y2 - y1) / 100);
+    preview.style.left = (vw * x1 / 100) + "px";
+    preview.style.top = (vh * y1 / 100) + "px";
+    preview.style.width = (vw * (x2 - x1) / 100) + "px";
+    preview.style.height = (vh * (y2 - y1) / 100) + "px";
+}
 
-    preview.style.left = left + "px";
-    preview.style.top = top + "px";
-    preview.style.width = width + "px";
-    preview.style.height = height + "px";
-}}
-
-function updateMarkers() {{
+function updateMarkers() {
     const start = document.getElementById("startRange").value;
     const end = document.getElementById("endRange").value;
 
@@ -245,32 +235,35 @@ function updateMarkers() {{
 
     const barWidth = 360;
 
-    document.getElementById("startMarker").style.left = (barWidth * (start / 100)) + "px";
-    document.getElementById("endMarker").style.left = (barWidth * (end / 100)) + "px";
-}}
+    document.getElementById("startMarker").style.left = (barWidth * start / 100) + "px";
+    document.getElementById("endMarker").style.left = (barWidth * end / 100) + "px";
+}
 
-function updatePlayProgress() {{
+function updatePlayProgress() {
     const video = document.getElementById("swingVideo");
     const progress = document.getElementById("playProgress");
 
-    if (!video.duration) {{
+    if (!video.duration) {
         requestAnimationFrame(updatePlayProgress);
         return;
-    }}
+    }
 
     const percent = (video.currentTime / video.duration) * 100;
     progress.style.width = percent + "%";
 
     requestAnimationFrame(updatePlayProgress);
-}}
+}
 
-window.onload = function() {{
+window.onload = function() {
     updatePreview();
     updateMarkers();
     updatePlayProgress();
-}};
+};
 </script>
 """
+
+    return HTMLResponse(content=html.format(video_name=video.filename))
+
 
 
 @app.post("/tools/swing/extract-mid10", response_class=HTMLResponse)
