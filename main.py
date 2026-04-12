@@ -53,10 +53,30 @@ def create_collage_mid10(image_paths, output_path):
     collage.save(output_path)
     return output_path
 
-
 @app.get("/tools/swing", response_class=HTMLResponse)
 def swing_page():
     return """
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+    @media screen and (orientation: portrait) {
+        h2 {
+            font-size: 34px;
+            text-align: center;
+        }
+        input[type="file"] {
+            font-size: 28px;
+            padding: 20px;
+        }
+        button {
+            font-size: 32px;
+            padding: 26px;
+            width: 100%;
+            border-radius: 14px;
+        }
+    }
+    </style>
+
     <h2>🏌️‍♂️ スイング動画アップロード</h2>
 
     <form action="/tools/swing/upload" method="post" enctype="multipart/form-data">
