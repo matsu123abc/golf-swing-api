@@ -53,17 +53,50 @@ def create_collage_mid10(image_paths, output_path):
     collage.save(output_path)
     return output_path
 
-
 @app.get("/tools/swing", response_class=HTMLResponse)
 def swing_page():
     return """
-    <h2>🏌️‍♂️ スイング動画アップロード</h2>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <form action="/tools/swing/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="video" accept="video/mp4">
-        <button type="submit">アップロード</button>
-    </form>
-    """
+<style>
+@media screen and (orientation: portrait) {
+    body {
+        font-size: 30px;
+    }
+    h2 {
+        font-size: 36px;
+        text-align: center;
+    }
+    input[type="file"] {
+        font-size: 28px;
+        padding: 20px;
+    }
+    button {
+        font-size: 32px;
+        padding: 26px;
+        width: 100%;
+        border-radius: 14px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h2>🏌️‍♂️ スイング動画アップロード</h2>
+
+<form action="/tools/swing/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="video" accept="video/mp4">
+    <button type="submit">アップロード</button>
+</form>
+
+</body>
+</html>
+"""
 
 
 @app.get("/tools/swing/video/{filename}")
