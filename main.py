@@ -183,30 +183,31 @@ async def upload_video(video: UploadFile = File(...)):
 </div>
 
 <!-- 進捗バー（動画のすぐ下） -->
-<div style="width:200px; height:10px; background:#ddd; margin-top:10px; position:relative;">
+<div style="width:200px; height:20px; background:#ddd; margin-top:10px; position:relative; border-radius:5px;">
     <div id="playProgress" style="
         position:absolute;
         top:0;
         left:0;
-        height:10px;
+        height:20px;
         width:0%;
         background:#4CAF50;
+        border-radius:5px;
     "></div>
 
     <div id="startMarker" style="
         position:absolute;
         top:0;
-        width:2px;
-        height:10px;
-        background:red;
+        width:4px;
+        height:20px;
+        background:rgba(255,0,0,0.8);
     "></div>
 
     <div id="endMarker" style="
         position:absolute;
         top:0;
-        width:2px;
-        height:10px;
-        background:red;
+        width:4px;
+        height:20px;
+        background:rgba(255,0,0,0.8);
     "></div>
 </div>
 
