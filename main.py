@@ -129,9 +129,9 @@ async def upload_video(video: UploadFile = File(...)):
 <style>
 @media screen and (orientation: portrait) {{
     button {{
-        font-size: 32px;
-        padding: 26px;
-        border-radius: 14px;
+        font-size: 20px;
+        padding: 10px 14px;
+        border-radius: 10px;
         width: 100%;
     }}
     input[type="range"] {{
