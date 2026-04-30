@@ -168,6 +168,48 @@ async def upload_video(video: UploadFile = File(...)):
 <input type="range" name="end" id="endRange" min="10" max="100" value="50" oninput="updateMarkers()"> 
 <span id="endv">50%</span><br><br>
 
+<!-- 進捗バー（動画のすぐ下） -->
+<div style="width:200px; height:20px; background:#ddd; margin-top:10px; position:relative; border-radius:5px;">
+
+    <!-- 再生位置（緑） -->
+    <div id="playProgress" style="
+        position:absolute;
+        top:0;
+        left:0;
+        height:20px;
+        width:0%;
+        background:#4CAF50;
+        border-radius:5px;
+    "></div>
+
+    <!-- start〜end の赤い帯 -->
+    <div id="rangeFill" style="
+        position:absolute;
+        top:0;
+        height:20px;
+        background:rgba(255,0,0,0.35);
+        pointer-events:none;
+    "></div>
+
+    <!-- start marker -->
+    <div id="startMarker" style="
+        position:absolute;
+        top:0;
+        width:4px;
+        height:20px;
+        background:rgba(255,0,0,0.9);
+    "></div>
+
+    <!-- end marker -->
+    <div id="endMarker" style="
+        position:absolute;
+        top:0;
+        width:4px;
+        height:20px;
+        background:rgba(255,0,0,0.9);
+    "></div>
+</div>
+
 <!-- 動画（200px） -->
 <div id="videoContainer" style="position: relative; display: inline-block;">
     <video id="swingVideo" width="200" controls>
@@ -179,35 +221,6 @@ async def upload_video(video: UploadFile = File(...)):
         border: 2px solid red;
         background-color: rgba(255,0,0,0.15);
         pointer-events: none;
-    "></div>
-</div>
-
-<!-- 進捗バー（動画のすぐ下） -->
-<div style="width:200px; height:20px; background:#ddd; margin-top:10px; position:relative; border-radius:5px;">
-    <div id="playProgress" style="
-        position:absolute;
-        top:0;
-        left:0;
-        height:20px;
-        width:0%;
-        background:#4CAF50;
-        border-radius:5px;
-    "></div>
-
-    <div id="startMarker" style="
-        position:absolute;
-        top:0;
-        width:4px;
-        height:20px;
-        background:rgba(255,0,0,0.8);
-    "></div>
-
-    <div id="endMarker" style="
-        position:absolute;
-        top:0;
-        width:4px;
-        height:20px;
-        background:rgba(255,0,0,0.8);
     "></div>
 </div>
 
