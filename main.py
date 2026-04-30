@@ -150,6 +150,13 @@ async def upload_video(video: UploadFile = File(...)):
 
 <h2>🏌️‍♂️ アップロード完了：{video_name}</h2>
 
+<div style="margin-top:10px;">
+    <button onclick="setSpeed(0.25)">0.25x</button>
+    <button onclick="setSpeed(0.5)">0.5x</button>
+    <button onclick="setSpeed(0.75)">0.75x</button>
+    <button onclick="setSpeed(1.0)">1.0x</button>
+</div>
+
 <div id="videoContainer" style="position: relative; display: inline-block;">
     <video id="swingVideo" width="360" controls>
         <source src="/tools/swing/video/{video_name}" type="video/mp4">
@@ -163,12 +170,6 @@ async def upload_video(video: UploadFile = File(...)):
     "></div>
 </div>
 
-<div style="margin-top:10px;">
-    <button onclick="setSpeed(0.25)">0.25x</button>
-    <button onclick="setSpeed(0.5)">0.5x</button>
-    <button onclick="setSpeed(0.75)">0.75x</button>
-    <button onclick="setSpeed(1.0)">1.0x</button>
-</div>
 
 <script>
 function setSpeed(rate) {{
