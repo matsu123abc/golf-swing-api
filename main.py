@@ -150,6 +150,7 @@ async def upload_video(video: UploadFile = File(...)):
 
 <h2>🏌️‍♂️ アップロード完了：{video_name}</h2>
 
+<!-- 速度ボタン（上） -->
 <div style="margin-top:10px;">
     <button onclick="setSpeed(0.25)">0.25x</button>
     <button onclick="setSpeed(0.5)">0.5x</button>
@@ -157,6 +158,17 @@ async def upload_video(video: UploadFile = File(...)):
     <button onclick="setSpeed(1.0)">1.0x</button>
 </div>
 
+<!-- 抽出範囲スライダー（動画の上） -->
+<h3>抽出範囲（%）</h3>
+抽出開始（start）:
+<input type="range" name="start" id="startRange" min="0" max="90" value="40" oninput="updateMarkers()"> 
+<span id="startv">40%</span><br>
+
+抽出終了（end）:
+<input type="range" name="end" id="endRange" min="10" max="100" value="50" oninput="updateMarkers()"> 
+<span id="endv">50%</span><br><br>
+
+<!-- 動画（200px） -->
 <div id="videoContainer" style="position: relative; display: inline-block;">
     <video id="swingVideo" width="200" controls>
         <source src="/tools/swing/video/{video_name}" type="video/mp4">
@@ -170,6 +182,33 @@ async def upload_video(video: UploadFile = File(...)):
     "></div>
 </div>
 
+<!-- 進捗バー（動画のすぐ下） -->
+<div style="width:200px; height:10px; background:#ddd; margin-top:10px; position:relative;">
+    <div id="playProgress" style="
+        position:absolute;
+        top:0;
+        left:0;
+        height:10px;
+        width:0%;
+        background:#4CAF50;
+    "></div>
+
+    <div id="startMarker" style="
+        position:absolute;
+        top:0;
+        width:2px;
+        height:10px;
+        background:red;
+    "></div>
+
+    <div id="endMarker" style="
+        position:absolute;
+        top:0;
+        width:2px;
+        height:10px;
+        background:red;
+    "></div>
+</div>
 
 <script>
 function setSpeed(rate) {{
@@ -179,15 +218,7 @@ function setSpeed(rate) {{
 
 <hr>
 
-<h3>抽出範囲（%）</h3>
-抽出開始（start）:
-<input type="range" name="start" id="startRange" min="0" max="90" value="40" oninput="updateMarkers()"> 
-<span id="startv">40%</span><br>
-
-抽出終了（end）:
-<input type="range" name="end" id="endRange" min="10" max="100" value="50" oninput="updateMarkers()"> 
-<span id="endv">50%</span><br><br>
-
+<!-- クロップ範囲スライダー -->
 <h3>クロップ範囲（%）</h3>
 
 <form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
@@ -238,7 +269,7 @@ function updateMarkers() {{
     document.getElementById("startHidden").value = start;
     document.getElementById("endHidden").value = end;
 
-    const barWidth = 360;
+    const barWidth = 200;
 
     document.getElementById("startMarker").style.left = (barWidth * start / 100) + "px";
     document.getElementById("endMarker").style.left = (barWidth * end / 100) + "px";
@@ -253,8 +284,8 @@ function updatePlayProgress() {{
         return;
     }}
 
-    const percenth = (video.currentTime / video.duration) * 100;
-    progress.style.widt = percent + "%";
+    const percent = (video.currentTime / video.duration) * 100;
+    progress.style.width = percent + "%";
 
     requestAnimationFrame(updatePlayProgress);
 }}
