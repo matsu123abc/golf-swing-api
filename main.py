@@ -361,8 +361,8 @@ async def extract_mid10(
         margin-top: 10px;
     }}
     textarea {{
-        width: 95%;
-        height: 260px;
+        width: 100%;
+        height: 360px;
         font-size: 14px;
     }}
 }}
