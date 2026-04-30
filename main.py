@@ -111,10 +111,6 @@ def get_image(filename: str):
     return FileResponse(file_path, media_type="image/jpeg")
 
 
-
-
-
-
 @app.post("/tools/swing/upload", response_class=HTMLResponse)
 async def upload_video(video: UploadFile = File(...)):
     os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -131,29 +127,22 @@ async def upload_video(video: UploadFile = File(...)):
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* スマホ縦画面でボタンとスライダーだけ大きくする */
-@media screen and (orientation: portrait) {
-
-    /* ボタンを大きく */
-    button {
+@media screen and (orientation: portrait) {{
+    button {{
         font-size: 32px;
         padding: 26px;
         border-radius: 14px;
         width: 100%;
-    }
-
-    /* スライダーを太く */
-    input[type="range"] {
+    }}
+    input[type="range"] {{
         width: 95%;
         height: 40px;
-    }
-
-    /* スライダー横の数値（40% など） */
-    span {
+    }}
+    span {{
         font-size: 28px;
         font-weight: bold;
-    }
-}
+    }}
+}}
 </style>
 </head>
 
@@ -182,9 +171,9 @@ async def upload_video(video: UploadFile = File(...)):
 </div>
 
 <script>
-function setSpeed(rate) {
+function setSpeed(rate) {{
     document.getElementById('swingVideo').playbackRate = rate;
-}
+}}
 </script>
 
 <hr>
@@ -215,7 +204,7 @@ function setSpeed(rate) {
 </form>
 
 <script>
-function updatePreview() {
+function updatePreview() {{
     const video = document.getElementById("swingVideo");
     const preview = document.getElementById("cropPreview");
 
@@ -236,9 +225,9 @@ function updatePreview() {
     preview.style.top = (vh * y1 / 100) + "px";
     preview.style.width = (vw * (x2 - x1) / 100) + "px";
     preview.style.height = (vh * (y2 - y1) / 100) + "px";
-}
+}}
 
-function updateMarkers() {
+function updateMarkers() {{
     const start = document.getElementById("startRange").value;
     const end = document.getElementById("endRange").value;
 
@@ -252,28 +241,28 @@ function updateMarkers() {
 
     document.getElementById("startMarker").style.left = (barWidth * start / 100) + "px";
     document.getElementById("endMarker").style.left = (barWidth * end / 100) + "px";
-}
+}}
 
-function updatePlayProgress() {
+function updatePlayProgress() {{
     const video = document.getElementById("swingVideo");
     const progress = document.getElementById("playProgress");
 
-    if (!video.duration) {
+    if (!video.duration) {{
         requestAnimationFrame(updatePlayProgress);
         return;
-    }
+    }}
 
-    const percent = (video.currentTime / video.duration) * 100;
-    progress.style.width = percent + "%";
+    const percenth = (video.currentTime / video.duration) * 100;
+    progress.style.widt = percent + "%";
 
     requestAnimationFrame(updatePlayProgress);
-}
+}}
 
-window.onload = function() {
+window.onload = function() {{
     updatePreview();
     updateMarkers();
     updatePlayProgress();
-};
+}};
 </script>
 
 </body>
