@@ -303,7 +303,6 @@ window.onload = function() {{
 
     return HTMLResponse(content=html.format(video_name=video.filename))
 
-
 @app.post("/tools/swing/extract-mid10", response_class=HTMLResponse)
 async def extract_mid10(
     video_name: str = Form(...),
@@ -344,7 +343,8 @@ async def extract_mid10(
     collage_path = f"{UPLOAD_DIR}/mid10_collage.jpg"
     create_collage_mid10(extracted_paths, collage_path)
 
-    html = """
+    # ★★★ ここから HTML（すべて {{ }} にエスケープ済み）★★★
+    html = f"""
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -367,7 +367,6 @@ async def extract_mid10(
         font-size: 14px;
     }}
 }}
-
 </style>
 </head>
 
@@ -375,7 +374,6 @@ async def extract_mid10(
 
 <h2>mid10 コラージュ画像</h2>
 
-<!-- 画像は最大サイズのまま -->
 <img src="/tools/swing/image/mid10_collage.jpg" style="max-width:100%; height:auto;"><br><br>
 
 <a href="/tools/swing/image/mid10_collage.jpg" download="mid10_collage.jpg">
@@ -429,3 +427,4 @@ function copyPrompt() {{
 """
 
     return HTMLResponse(content=html)
+
