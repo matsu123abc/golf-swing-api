@@ -111,6 +111,10 @@ def get_image(filename: str):
     return FileResponse(file_path, media_type="image/jpeg")
 
 
+
+
+
+
 @app.post("/tools/swing/upload", response_class=HTMLResponse)
 async def upload_video(video: UploadFile = File(...)):
     os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -127,30 +131,27 @@ async def upload_video(video: UploadFile = File(...)):
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* スマホ縦画面で特大UI */
+/* スマホ縦画面でボタンとスライダーだけ大きくする */
 @media screen and (orientation: portrait) {
-    body {
-        font-size: 28px;
-    }
-    h2, h3 {
-        font-size: 34px;
-    }
+
+    /* ボタンを大きく */
     button {
-        font-size: 30px;
-        padding: 24px;
+        font-size: 32px;
+        padding: 26px;
         border-radius: 14px;
+        width: 100%;
     }
+
+    /* スライダーを太く */
     input[type="range"] {
         width: 95%;
         height: 40px;
     }
+
+    /* スライダー横の数値（40% など） */
     span {
         font-size: 28px;
         font-weight: bold;
-    }
-    #videoContainer {
-        transform: scale(1.25);
-        transform-origin: top left;
     }
 }
 </style>
