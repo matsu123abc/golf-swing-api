@@ -158,7 +158,7 @@ async def upload_video(video: UploadFile = File(...)):
 </div>
 
 <div id="videoContainer" style="position: relative; display: inline-block;">
-    <video id="swingVideo" width="360" controls>
+    <video id="swingVideo" width="200" controls>
         <source src="/tools/swing/video/{video_name}" type="video/mp4">
     </video>
 
