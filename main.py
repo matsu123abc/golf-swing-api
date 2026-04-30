@@ -65,21 +65,21 @@ def swing_page():
 <style>
 @media screen and (orientation: portrait) {
     body {
-        font-size: 30px;
+        font-size: 16px;
     }
     h2 {
-        font-size: 36px;
+        font-size: 16px;
         text-align: center;
     }
     input[type="file"] {
-        font-size: 28px;
-        padding: 20px;
+        font-size: 16px;
+        padding: 10px;
     }
     button {
-        font-size: 32px;
-        padding: 26px;
+        font-size: 16px;
+        padding: 10px 14px;
+        border-radius: 10px;
         width: 100%;
-        border-radius: 14px;
     }
 }
 </style>
@@ -139,7 +139,7 @@ async def upload_video(video: UploadFile = File(...)):
         height: 40px;
     }}
     span {{
-        font-size: 12px;
+        font-size: 16px;
         font-weight: bold;
     }}
 }}
