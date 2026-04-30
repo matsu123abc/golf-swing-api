@@ -360,12 +360,14 @@ async def extract_mid10(
         border-radius: 10px;
         margin-top: 10px;
     }}
+
     textarea {{
-        width: 100%;
-        height: 360px;
+        width: 100% !important;
+        height: 360px !important;
         font-size: 14px;
     }}
 }}
+
 </style>
 </head>
 
