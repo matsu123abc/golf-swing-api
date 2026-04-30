@@ -150,14 +150,6 @@ async def upload_video(video: UploadFile = File(...)):
 
 <h2>🏌️‍♂️ アップロード完了：{video_name}</h2>
 
-<!-- 速度ボタン（上） -->
-<div style="margin-top:10px;">
-    <button onclick="setSpeed(0.25)">0.25x</button>
-    <button onclick="setSpeed(0.5)">0.5x</button>
-    <button onclick="setSpeed(0.75)">0.75x</button>
-    <button onclick="setSpeed(1.0)">1.0x</button>
-</div>
-
 <!-- 抽出範囲スライダー（動画の上） -->
 <h3>抽出範囲（%）</h3>
 抽出開始（start）:
@@ -225,10 +217,6 @@ async def upload_video(video: UploadFile = File(...)):
 </div>
 
 <script>
-function setSpeed(rate) {{
-    document.getElementById('swingVideo').playbackRate = rate;
-}}
-
 // ★★★ ここに追加する ★★★
 const video = document.getElementById("swingVideo");
 
