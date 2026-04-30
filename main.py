@@ -225,25 +225,25 @@ async def upload_video(video: UploadFile = File(...)):
 </div>
 
 <script>
-function setSpeed(rate) {
+function setSpeed(rate) {{
     document.getElementById('swingVideo').playbackRate = rate;
-}
+}}
 
 // ★★★ ここに追加する ★★★
 const video = document.getElementById("swingVideo");
 
-video.addEventListener("timeupdate", () => {
+video.addEventListener("timeupdate", () => {{
     const start = Number(document.getElementById("startRange").value);
     const end = Number(document.getElementById("endRange").value);
 
     const currentPercent = (video.currentTime / video.duration) * 100;
 
-    if (currentPercent >= start && currentPercent <= end) {
+    if (currentPercent >= start && currentPercent <= end) {{
         video.playbackRate = 0.25;   // ★ 赤帯区間は 0.25倍
-    } else {
+    }} else {{
         video.playbackRate = 1.0;    // ★ それ以外は通常速度
-    }
-});
+    }}
+}});
 </script>
 
 <hr>
