@@ -344,20 +344,47 @@ async def extract_mid10(
     collage_path = f"{UPLOAD_DIR}/mid10_collage.jpg"
     create_collage_mid10(extracted_paths, collage_path)
 
-    html = "<h2>mid10 コラージュ画像</h2>"
-    html += f'<img src="/tools/swing/image/mid10_collage.jpg" width="600"><br><br>'
+    html = """
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    html += f'''
-    <a href="/tools/swing/image/mid10_collage.jpg" download="mid10_collage.jpg">
-        <button>コラージュ画像をダウンロード</button>
-    </a>
-    '''
+<style>
+@media screen and (orientation: portrait) {{
+    button {{
+        font-size: 18px;
+        padding: 12px;
+        width: 100%;
+        border-radius: 10px;
+        margin-top: 10px;
+    }}
+    textarea {{
+        width: 95%;
+        height: 260px;
+        font-size: 14px;
+    }}
+}}
+</style>
+</head>
 
-    html += """
-    <hr>
-    <h3>Chat に投げるプロンプト（コピペ用）</h3>
+<body>
 
-    <textarea id="promptArea" style="width:700px; height:260px;">
+<h2>mid10 コラージュ画像</h2>
+
+<!-- 画像は最大サイズのまま -->
+<img src="/tools/swing/image/mid10_collage.jpg" style="max-width:100%; height:auto;"><br><br>
+
+<a href="/tools/swing/image/mid10_collage.jpg" download="mid10_collage.jpg">
+    <button>コラージュ画像をダウンロード</button>
+</a>
+
+<hr>
+
+<h3>Chat に投げるプロンプト（コピペ用）</h3>
+
+<textarea id="promptArea">
 以下はゴルフスイングの mid10（任意設定）の連続写真（1〜10番）です。
 クラブの動き・フェース向き・手元の軌道・クラブパスのみを分析してください。
 人物の身体的特徴には触れないでください。
@@ -375,25 +402,28 @@ async def extract_mid10(
 
 【画像】
 （上のコラージュ画像を Chat に貼ってください）
-    </textarea>
+</textarea>
 
-    <button onclick="copyPrompt()" style="margin-top:10px;">コピー</button>
+<button onclick="copyPrompt()">コピー</button>
 
-    <script>
-    function copyPrompt() {
-        const textarea = document.getElementById("promptArea");
-        textarea.select();
-        textarea.setSelectionRange(0, 99999);
+<script>
+function copyPrompt() {{
+    const textarea = document.getElementById("promptArea");
+    textarea.select();
+    textarea.setSelectionRange(0, 99999);
 
-        navigator.clipboard.writeText(textarea.value)
-            .then(() => {
-                alert("コピーしました！");
-            })
-            .catch(err => {
-                alert("コピーに失敗しました");
-            });
-    }
-    </script>
-    """
+    navigator.clipboard.writeText(textarea.value)
+        .then(() => {{
+            alert("コピーしました！");
+        }})
+        .catch(err => {{
+            alert("コピーに失敗しました");
+        }});
+}}
+</script>
 
-    return html
+</body>
+</html>
+"""
+
+    return HTMLResponse(content=html)
