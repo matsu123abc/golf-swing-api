@@ -65,14 +65,14 @@ def swing_page():
 <style>
 @media screen and (orientation: portrait) {
     body {
-        font-size: 16px;
+        font-size: 24px;
     }
     h2 {
-        font-size: 16px;
+        font-size: 24px;
         text-align: center;
     }
     input[type="file"] {
-        font-size: 16px;
+        font-size: 24px;
         padding: 10px;
     }
     button {
