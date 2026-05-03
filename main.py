@@ -75,11 +75,22 @@ def swing_page():
         font-size: 24px;
         padding: 10px;
     }
+
+    /* ★ ボタンの通常状態 */
     button {
         font-size: 16px;
         padding: 10px 14px;
         border-radius: 10px;
         width: 100%;
+        background-color: #4CAF50;   /* 緑 */
+        color: white;
+        border: none;
+    }
+
+    /* ★ スマホで押した瞬間の色変化 */
+    button:active {
+        background-color: #2e7d32;   /* 濃い緑 */
+        transform: scale(0.97);      /* 押し込む感覚 */
     }
 }
 </style>
@@ -133,11 +144,22 @@ async def upload_video(video: UploadFile = File(...)):
         padding: 10px 14px;
         border-radius: 10px;
         width: 100%;
+        background-color: #4CAF50;   /* 通常色（緑） */
+        color: white;
+        border: none;
     }}
+
+    /* ★ スマホで押した瞬間の色変化 */
+    button:active {{
+        background-color: #2e7d32;   /* 押した時に濃い緑 */
+        transform: scale(0.97);      /* 押し込む感覚 */
+    }}
+
     input[type="range"] {{
         width: 95%;
         height: 40px;
     }}
+
     span {{
         font-size: 16px;
         font-weight: bold;
@@ -377,6 +399,15 @@ async def extract_mid10(
         width: 100%;
         border-radius: 10px;
         margin-top: 10px;
+        background-color: #4CAF50;   /* 通常色（緑） */
+        color: white;
+        border: none;
+    }}
+
+    /* ★ スマホで押した瞬間の色変化 */
+    button:active {{
+        background-color: #2e7d32;   /* 押した時に濃い緑 */
+        transform: scale(0.97);      /* 押し込む感覚 */
     }}
 
     textarea {{
