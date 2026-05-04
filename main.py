@@ -144,15 +144,14 @@ async def upload_video(video: UploadFile = File(...)):
         padding: 10px 14px;
         border-radius: 10px;
         width: 100%;
-        background-color: #4CAF50;   /* 通常色（緑） */
+        background-color: #4CAF50;
         color: white;
         border: none;
     }}
 
-    /* ★ スマホで押した瞬間の色変化 */
     button:active {{
-        background-color: #2e7d32;   /* 押した時に濃い緑 */
-        transform: scale(0.97);      /* 押し込む感覚 */
+        background-color: #2e7d32;
+        transform: scale(0.97);
     }}
 
     input[type="range"] {{
@@ -172,7 +171,6 @@ async def upload_video(video: UploadFile = File(...)):
 
 <h2>🏌️‍♂️ アップロード完了：{video_name}</h2>
 
-<!-- 抽出範囲スライダー（動画の上） -->
 <h3>抽出範囲（%）</h3>
 抽出開始（start）:
 <input type="range" name="start" id="startRange" min="0" max="90" value="40" oninput="updateMarkers()"> 
@@ -182,7 +180,6 @@ async def upload_video(video: UploadFile = File(...)):
 <input type="range" name="end" id="endRange" min="10" max="100" value="50" oninput="updateMarkers()"> 
 <span id="endv">50%</span><br><br>
 
-<!-- 進捗バー（動画のすぐ下） -->
 <div id="progressBar" style="
     width:100%;
     height:20px;
@@ -191,8 +188,6 @@ async def upload_video(video: UploadFile = File(...)):
     position:relative;
     border-radius:5px;
 ">
-
-    <!-- 再生位置（緑） -->
     <div id="playProgress" style="
         position:absolute;
         top:0;
@@ -203,7 +198,6 @@ async def upload_video(video: UploadFile = File(...)):
         border-radius:5px;
     "></div>
 
-    <!-- start〜end の赤い帯 -->
     <div id="rangeFill" style="
         position:absolute;
         top:0;
@@ -212,7 +206,6 @@ async def upload_video(video: UploadFile = File(...)):
         pointer-events:none;
     "></div>
 
-    <!-- start marker -->
     <div id="startMarker" style="
         position:absolute;
         top:0;
@@ -221,7 +214,6 @@ async def upload_video(video: UploadFile = File(...)):
         background:rgba(255,0,0,0.9);
     "></div>
 
-    <!-- end marker -->
     <div id="endMarker" style="
         position:absolute;
         top:0;
@@ -231,21 +223,24 @@ async def upload_video(video: UploadFile = File(...)):
     "></div>
 </div>
 
-<!-- 動画（200px） -->
-<video id="swingVideo" style="width:100%; max-width:500px;" controls>
-    <source src="/tools/swing/video/{video_name}" type="video/mp4">
-</video>
+<!-- ★ 動画と赤枠を同じコンテナに入れる -->
+<div id="videoContainer" style="position: relative; width:100%; max-width:500px;">
 
+    <video id="swingVideo" style="width:100%;" controls>
+        <source src="/tools/swing/video/{video_name}" type="video/mp4">
+    </video>
+
+    <!-- ★ 赤いクロップ枠 -->
     <div id="cropPreview" style="
         position: absolute;
         border: 2px solid red;
         background-color: rgba(255,0,0,0.15);
         pointer-events: none;
     "></div>
+
 </div>
 
 <script>
-// ★★★ ここに追加する ★★★
 const video = document.getElementById("swingVideo");
 
 video.addEventListener("timeupdate", () => {{
@@ -255,16 +250,15 @@ video.addEventListener("timeupdate", () => {{
     const currentPercent = (video.currentTime / video.duration) * 100;
 
     if (currentPercent >= start && currentPercent <= end) {{
-        video.playbackRate = 0.25;   // ★ 赤帯区間は 0.25倍
+        video.playbackRate = 0.25;
     }} else {{
-        video.playbackRate = 1.0;    // ★ それ以外は通常速度
+        video.playbackRate = 1.0;
     }}
 }});
 </script>
 
 <hr>
 
-<!-- クロップ範囲スライダー -->
 <h3>クロップ範囲（%）</h3>
 
 <form action="/tools/swing/extract-mid10" method="post" enctype="multipart/form-data">
@@ -347,7 +341,6 @@ window.onload = function() {{
     updatePlayProgress();
 }};
 
-// ★ 動画の高さが確定してからクロップ枠を描画
 document.getElementById("swingVideo").addEventListener("loadedmetadata", () => {{
     updatePreview();
 }});
@@ -358,6 +351,7 @@ document.getElementById("swingVideo").addEventListener("loadedmetadata", () => {
 """
 
     return HTMLResponse(content=html.format(video_name=video.filename))
+
 
 @app.post("/tools/swing/extract-mid10", response_class=HTMLResponse)
 async def extract_mid10(
