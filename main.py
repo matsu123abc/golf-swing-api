@@ -346,6 +346,11 @@ window.onload = function() {{
     updateMarkers();
     updatePlayProgress();
 }};
+
+// ★ 動画の高さが確定してからクロップ枠を描画
+document.getElementById("swingVideo").addEventListener("loadedmetadata", () => {{
+    updatePreview();
+}});
 </script>
 
 </body>
