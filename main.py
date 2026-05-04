@@ -279,6 +279,7 @@ video.addEventListener("timeupdate", () => {{
 function updatePreview() {{
     const video = document.getElementById("swingVideo");
     const preview = document.getElementById("cropPreview");
+    const container = document.getElementById("videoContainer");  // ★ 追加
 
     const x1 = document.querySelector("input[name='x1']").value;
     const x2 = document.querySelector("input[name='x2']").value;
@@ -290,8 +291,8 @@ function updatePreview() {{
     document.getElementById("y1v").innerText = y1 + "%";
     document.getElementById("y2v").innerText = y2 + "%";
 
-    const vw = video.clientWidth;
-    const vh = video.clientHeight;
+    const vw = container.clientWidth;   // ★ video → container に変更
+    const vh = container.clientHeight;  // ★ ここが重要！
 
     preview.style.left = (vw * x1 / 100) + "px";
     preview.style.top = (vh * y1 / 100) + "px";
