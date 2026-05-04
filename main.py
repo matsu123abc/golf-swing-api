@@ -305,7 +305,7 @@ function updatePreview() {{
     preview.style.height = (vh * (y2 - y1) / 100) + "px";
 }}
 
-function updateMarkers() {
+function updateMarkers() {{
     const start = document.getElementById("startRange").value;
     const end = document.getElementById("endRange").value;
 
@@ -324,7 +324,7 @@ function updateMarkers() {
     const rangeFill = document.getElementById("rangeFill");
     rangeFill.style.left = (barWidth * start / 100) + "px";
     rangeFill.style.width = (barWidth * (end - start) / 100) + "px";
-}
+}}
 
 function updatePlayProgress() {{
     const video = document.getElementById("swingVideo");
