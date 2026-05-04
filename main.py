@@ -156,7 +156,7 @@ async def upload_video(video: UploadFile = File(...)):
     }}
 
     input[type="range"] {{
-        width: 95%;
+        width: 100%;
         height: 40px;
     }}
 
@@ -183,7 +183,14 @@ async def upload_video(video: UploadFile = File(...)):
 <span id="endv">50%</span><br><br>
 
 <!-- 進捗バー（動画のすぐ下） -->
-<div style="width:200px; height:20px; background:#ddd; margin-top:10px; position:relative; border-radius:5px;">
+<div id="progressBar" style="
+    width:100%;
+    height:20px;
+    background:#ddd;
+    margin-top:10px;
+    position:relative;
+    border-radius:5px;
+">
 
     <!-- 再生位置（緑） -->
     <div id="playProgress" style="
@@ -225,10 +232,9 @@ async def upload_video(video: UploadFile = File(...)):
 </div>
 
 <!-- 動画（200px） -->
-<div id="videoContainer" style="position: relative; display: inline-block;">
-    <video id="swingVideo" width="200" controls>
-        <source src="/tools/swing/video/{video_name}" type="video/mp4">
-    </video>
+<video id="swingVideo" style="width:100%; max-width:500px;" controls>
+    <source src="/tools/swing/video/{video_name}" type="video/mp4">
+</video>
 
     <div id="cropPreview" style="
         position: absolute;
@@ -299,7 +305,7 @@ function updatePreview() {{
     preview.style.height = (vh * (y2 - y1) / 100) + "px";
 }}
 
-function updateMarkers() {{
+function updateMarkers() {
     const start = document.getElementById("startRange").value;
     const end = document.getElementById("endRange").value;
 
@@ -309,11 +315,16 @@ function updateMarkers() {{
     document.getElementById("startHidden").value = start;
     document.getElementById("endHidden").value = end;
 
-    const barWidth = 200;
+    const bar = document.getElementById("progressBar");
+    const barWidth = bar.clientWidth;
 
     document.getElementById("startMarker").style.left = (barWidth * start / 100) + "px";
     document.getElementById("endMarker").style.left = (barWidth * end / 100) + "px";
-}}
+
+    const rangeFill = document.getElementById("rangeFill");
+    rangeFill.style.left = (barWidth * start / 100) + "px";
+    rangeFill.style.width = (barWidth * (end - start) / 100) + "px";
+}
 
 function updatePlayProgress() {{
     const video = document.getElementById("swingVideo");
